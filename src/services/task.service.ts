@@ -36,7 +36,7 @@ export class TaskService extends VikunjaService {
    * @returns List of tasks
    */
   async getAllTasks(params?: GetTasksParams): Promise<Task[]> {
-    return this.request<Task[]>('/tasks/all', 'GET', undefined, {
+    return this.request<Task[]>('/tasks', 'GET', undefined, {
       params: params as Record<string, string | number | boolean | undefined>,
     });
   }

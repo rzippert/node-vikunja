@@ -12,15 +12,15 @@ describe('TaskService', () => {
   let taskService: TaskService;
   const baseUrl = 'https://vikunja.example.com/api/v1';
   const mockToken = 'mock-token';
-  
+
   beforeEach(() => {
     // Reset mocks before each test
     jest.resetAllMocks();
-    
+
     // Create a new service instance
     taskService = new TaskService(baseUrl, mockToken);
   });
-  
+
   describe('getAllTasks', () => {
     it('should fetch all tasks without parameters', async () => {
       // Mock tasks response
@@ -40,7 +40,7 @@ describe('TaskService', () => {
           done: true
         }
       ];
-      
+
       // Mock the fetch response
       const mockResponse = {
         ok: true,
@@ -51,19 +51,19 @@ describe('TaskService', () => {
           'content-type': 'application/json',
         })
       };
-      
+
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
-      
+
       // Call the method
       const result = await taskService.getAllTasks();
-      
+
       // Verify the result
       expect(result).toEqual(mockTasks);
-      
+
       // Verify that fetch was called with the correct arguments
       expect(global.fetch).toHaveBeenCalledTimes(1);
       expect(global.fetch).toHaveBeenCalledWith(
-        `${baseUrl}/tasks/all`,
+        `${baseUrl}/tasks`,
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -85,7 +85,7 @@ describe('TaskService', () => {
           done: false
         }
       ];
-      
+
       const params = {
         page: 1,
         per_page: 10,
@@ -94,7 +94,7 @@ describe('TaskService', () => {
         order_by: 'asc' as 'asc' | 'desc',
         filter: 'done equals false'
       };
-      
+
       // Mock the fetch response
       const mockResponse = {
         ok: true,
@@ -105,23 +105,23 @@ describe('TaskService', () => {
           'content-type': 'application/json',
         })
       };
-      
+
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
-      
+
       // Call the method
       const result = await taskService.getAllTasks(params);
-      
+
       // Verify the result
       expect(result).toEqual(mockTasks);
-      
+
       // Verify that fetch was called with the correct arguments including query params
       expect(global.fetch).toHaveBeenCalledTimes(1);
       expect(global.fetch).toHaveBeenCalledWith(
-        `${baseUrl}/tasks/all?page=1&per_page=10&s=search+term&sort_by=title&order_by=asc&filter=done+equals+false`,
+        `${baseUrl}/tasks?page=1&per_page=10&s=search+term&sort_by=title&order_by=asc&filter=done+equals+false`,
         expect.anything()
       );
     });
-    
+
     it('should handle multiple filter parameters', async () => {
       // Mock tasks response
       const mockTasks: Task[] = [
@@ -133,11 +133,11 @@ describe('TaskService', () => {
           priority: 1
         }
       ];
-      
+
       const params = {
         filter: 'done equals false and priority equals 1'
       };
-      
+
       // Mock the fetch response
       const mockResponse = {
         ok: true,
@@ -148,23 +148,23 @@ describe('TaskService', () => {
           'content-type': 'application/json',
         })
       };
-      
+
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
-      
+
       // Call the method
       const result = await taskService.getAllTasks(params);
-      
+
       // Verify the result
       expect(result).toEqual(mockTasks);
-      
+
       // Verify that fetch was called with the correct arguments including query params
       expect(global.fetch).toHaveBeenCalledTimes(1);
       expect(global.fetch).toHaveBeenCalledWith(
-        `${baseUrl}/tasks/all?filter=done+equals+false+and+priority+equals+1`,
+        `${baseUrl}/tasks?filter=done+equals+false+and+priority+equals+1`,
         expect.anything()
       );
     });
-    
+
     it('should handle filter_include_nulls parameter', async () => {
       // Mock tasks response
       const mockTasks: Task[] = [
@@ -176,12 +176,12 @@ describe('TaskService', () => {
           due_date: ''
         }
       ];
-      
+
       const params = {
         filter: 'due_date equals ',
         filter_include_nulls: true
       };
-      
+
       // Mock the fetch response
       const mockResponse = {
         ok: true,
@@ -192,19 +192,19 @@ describe('TaskService', () => {
           'content-type': 'application/json',
         })
       };
-      
+
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
-      
+
       // Call the method
       const result = await taskService.getAllTasks(params);
-      
+
       // Verify the result
       expect(result).toEqual(mockTasks);
-      
+
       // Verify that fetch was called with the correct arguments including query params
       expect(global.fetch).toHaveBeenCalledTimes(1);
       expect(global.fetch).toHaveBeenCalledWith(
-        `${baseUrl}/tasks/all?filter=due_date+equals+&filter_include_nulls=true`,
+        `${baseUrl}/tasks?filter=due_date+equals+&filter_include_nulls=true`,
         expect.anything()
       );
     });
@@ -216,7 +216,7 @@ describe('TaskService', () => {
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
-        json: jest.fn().mockResolvedValue({ 
+        json: jest.fn().mockResolvedValue({
           message: errorMessage,
           code: 500
         }),
@@ -224,9 +224,9 @@ describe('TaskService', () => {
           'content-type': 'application/json',
         })
       };
-      
+
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
-      
+
       // Call the method and expect it to throw
       await expect(taskService.getAllTasks()).rejects.toThrow(VikunjaError);
       await expect(taskService.getAllTasks()).rejects.toMatchObject({
@@ -234,12 +234,12 @@ describe('TaskService', () => {
         statusCode: 500
       });
     });
-    
+
     it('should handle network errors', async () => {
       // Mock a network error
       const networkError = new Error('Network error');
       (global.fetch as jest.Mock).mockRejectedValue(networkError);
-      
+
       // Call the method and expect it to throw
       await expect(taskService.getAllTasks()).rejects.toThrow(VikunjaError);
       await expect(taskService.getAllTasks()).rejects.toMatchObject({
@@ -247,7 +247,7 @@ describe('TaskService', () => {
         statusCode: 0
       });
     });
-    
+
     it('should handle non-JSON responses', async () => {
       // Mock a response with non-JSON content
       const mockResponse = {
@@ -259,9 +259,9 @@ describe('TaskService', () => {
           'content-type': 'text/html',
         })
       };
-      
+
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
-      
+
       // Call the method and expect it to throw
       await expect(taskService.getAllTasks()).rejects.toThrow(VikunjaError);
       await expect(taskService.getAllTasks()).rejects.toMatchObject({
